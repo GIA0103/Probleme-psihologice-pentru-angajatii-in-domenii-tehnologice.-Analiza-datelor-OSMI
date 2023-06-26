@@ -288,8 +288,7 @@ df2 <- df1 %>%
   select(-are_you_self_employed)
 
 
-#pentru a eficientiza următoarele etape ale procesării și analizării datelor am 
-#creat un „id” pentru fiecare respondent
+#pentru a eficientiza următoarele etape ale procesării și analizării datelor am creat un „id” pentru fiecare respondent
 df3 <- df2 %>%
   mutate(id = row_number())
 
