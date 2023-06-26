@@ -7,20 +7,18 @@ options(scipen=999, digits=4)
 library(ggplot2)
 
 
-names(cowokers_previous_workplace)
-
 
 #calculating the number and percentage of null values corresponding to attributes in the dataset
 # (not NA, but 'N/A'):
-missing_vals <- cowokers_previous_workplace %>%
+missing_vals <- previous_workplace %>%
   select(-year, -id) %>%
   map_int(., ~ sum(is.na(.) | . == 'N/A')) %>%
   tibble(variable = names(.), n_missing = .) %>%
   mutate (percent_missing = round(n_missing * 100 / 
-                                    nrow(cowokers_previous_workplace), 2))
+                                    nrow(previous_workplace), 2))
 
 
-#plot
+# now, the plot
 ggplot(missing_vals, 
        aes (x = variable, y = n_missing, fill = variable)) +
   geom_col() +
@@ -31,22 +29,36 @@ ggplot(missing_vals,
   theme(legend.position="none")
 
 
-#compute the frequencies for each categorical variables and values
-eda_factors <- cowokers_previous_workplace %>%
-  mutate(ever_previous_coworker_discuss_their_another_s_mental_health = case_when(
-    ever_previous_coworker_discuss_their_another_s_mental_health == 1 ~ "Yes",
-    ever_previous_coworker_discuss_their_another_s_mental_health == 0 ~ "No",
-    TRUE ~ as.character(ever_previous_coworker_discuss_their_another_s_mental_health)
+
+#glimpse(previous_workplace)
+
+
+
+# first, compute the frequencies for each categorical variables and values
+eda_factors <- previous_workplace %>%
+  select(-year) %>%
+  mutate(do_you_have_previous_employers = case_when(
+    do_you_have_previous_employers == 1 ~ "Yes",
+    do_you_have_previous_employers == 0 ~ "No",
+    TRUE ~ as.character(do_you_have_previous_employers)
   )) %>%
-  mutate_if(is.factor, as.character) %>%
-  select_if(., is.character ) %>%
+  mutate(have_previous_employers = case_when(
+    have_previous_employers == 1 ~ "Yes",
+    have_previous_employers == 0 ~ "No",
+    TRUE ~ as.character(have_previous_employers)
+  )) %>%
+  mutate(was_your_employer_primarily_a_tech_company_organization = case_when(
+    was_your_employer_primarily_a_tech_company_organization == 1 ~ "Yes",
+    was_your_employer_primarily_a_tech_company_organization == 0 ~ "No",
+    TRUE ~ as.character(was_your_employer_primarily_a_tech_company_organization)
+  )) %>%
   mutate (id = row_number()) %>%
   pivot_longer(-id, names_to = "variable", values_to = "value" ) %>%
   mutate (value = coalesce(value, 'N/A')) %>%
   group_by(variable, value) %>%
   summarise (n_value = n()) %>%
   ungroup() %>%
-  mutate (percent = round(n_value * 100 / nrow(cowokers_previous_workplace),2)) %>%
+  mutate (percent = round(n_value * 100 / nrow(previous_workplace),2)) %>%
   arrange(variable, value)
 View(eda_factors)
 
@@ -58,8 +70,10 @@ test <- eda_factors %>%
 test <- eda_factors %>%
   filter (value == 'N/A')
 
+table(previous_workplace$have_previous_employers)
 
-#plot only the factors with less than 20 distinct values 
+
+# plot only the factors with less than 20 distinct values 
 eda_factors %>%
   mutate(variable = str_replace_all(variable, "_", " ")) %>%
   group_by(variable) %>%
@@ -73,24 +87,28 @@ eda_factors %>%
   ggplot(., aes(x = value, y = n_value, fill = value)) +
   geom_col() +
   geom_text (aes(label = paste0(round(percent,0), '%'),
-                 vjust = if_else(n_value > 300, 1.5, -0.5)), size = 3) +
+                 vjust = if_else(n_value > 300, 1.5, -0.5)), size = 4) +
   facet_wrap(~ variable, scale = "free", labeller = label_wrap_gen(width=50, multi_line = TRUE)) +
-  theme(axis.text.x = element_text(size = 8, angle = 25, hjust = 1)) +
+  theme(axis.text.x = element_text(size = 10, angle = 45, hjust = 1)) +
   theme(strip.text.x = element_text(size = 10)) +
   xlab("") + ylab("frequency") +
   theme(legend.position = 'none')
 
 
+#names(previous_workplace)
+
+#glimpse(previous_workplace)
 
 
-#### plots for each attribute ####
+
+#do_you_have_previous_employers
+table(previous_workplace$do_you_have_previous_employers)
 
 
-#willing_to_discuss_a_mental_health_with_previous_coworkers         
 eda_factors %>%
   group_by(variable) %>%
   summarise(n_of_values = n()) %>%
-  filter (variable == "willing_to_discuss_a_mental_health_with_previous_coworkers") %>%    
+  filter (variable == "do_you_have_previous_employers") %>%    
   ungroup() %>%
   select (variable) %>%
   inner_join(eda_factors) %>%
@@ -105,12 +123,14 @@ eda_factors %>%
   theme(legend.position = 'none')
 
 
+#have_previous_employers distribution
+table(previous_workplace$have_previous_employers)
 
-#hear_or_observe_negative_consequences_for_coworkers_with_mental_health_issues_in_previous_workplaces
+
 eda_factors %>%
   group_by(variable) %>%
   summarise(n_of_values = n()) %>%
-  filter (variable == "hear_or_observe_negative_consequences_for_coworkers_with_mental_health_issues_in_previous_workplaces") %>%    
+  filter (variable == "have_previous_employers") %>%    
   ungroup() %>%
   select (variable) %>%
   inner_join(eda_factors) %>%
@@ -125,12 +145,14 @@ eda_factors %>%
   theme(legend.position = 'none')
 
 
+# was_your_employer_primarily_a_tech_company_organization
+table(previous_workplace$was_your_employer_primarily_a_tech_company_organization)
 
-#would_you_have_been_willing_to_discuss_your_mental_health_with_your_coworkers_at_previous_employers 
+
 eda_factors %>%
   group_by(variable) %>%
   summarise(n_of_values = n()) %>%
-  filter (variable == "would_you_have_been_willing_to_discuss_your_mental_health_with_your_coworkers_at_previous_employers") %>%    
+  filter (variable == "was_your_employer_primarily_a_tech_company_organization") %>%    
   ungroup() %>%
   select (variable) %>%
   inner_join(eda_factors) %>%
@@ -145,38 +167,3 @@ eda_factors %>%
   theme(legend.position = 'none')
 
 
-#ever_previous_coworker_discuss_their_another_s_mental_health     
-table(cowokers_previous_workplace$ever_previous_coworker_discuss_their_another_s_mental_health)
-
-
-eda_factors %>%
-  group_by(variable) %>%
-  summarise(n_of_values = n()) %>%
-  filter (variable == "ever_previous_coworker_discuss_their_another_s_mental_health") %>%    
-  ungroup() %>%
-  select (variable) %>%
-  inner_join(eda_factors) %>%
-  ggplot(., aes(x = value, y = n_value, fill = value)) +
-  geom_col() +
-  geom_text (aes(label = paste0(round(percent,0), '%'),
-                 vjust = if_else(n_value > 300, 1.5, -0.5)), size = 3) +
-  facet_wrap(~ variable, scale = "free") +
-  theme(axis.text.x = element_text(size = 10, angle = 45, hjust = 1)) +
-  theme(strip.text.x = element_text(size = 13)) +
-  xlab("") + ylab("frequency") +
-  theme(legend.position = 'none')
-
-
-
-
-##################################################################################################################
-# conversation_with_coworkers_about_their_mental_health_reactions_1
-# este o intrebare cu raspuns deschis
-table(cowokers_previous_workplace$conversation_with_coworkers_about_their_mental_health_reactions_1)
-
-
-
-
-# conversation_with_previous_coworkers_about_your_mental_health_reactions  
-# este o intrebare cu raspuns deschis
-table(cowokers_previous_workplace$conversation_with_previous_coworkers_about_your_mental_health_reactions)
