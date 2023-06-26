@@ -14,6 +14,8 @@ df_mentalhealth_vs_familyhistory <- df3 %>%
 
 
 
+
+
 #Distribution of Employees That Currently Have a Mental Health Disorder Based on Family History of Mental Illness
 
 data <- df_mentalhealth_vs_familyhistory %>%
@@ -34,6 +36,7 @@ ggplot(data = data, aes(x = family_history_of_mental_illness, y = percentage,
   theme(axis.text.x = element_text(angle = 30,
                                    vjust = 1, 
                                    hjust = 1 )) 
+
 
 
 
@@ -62,6 +65,8 @@ ggplot(data = data, aes(x = family_history_of_mental_illness, y = percentage,
 
 
 
+
+
 #Distribution of Employees Diagnosed with a Mental Health Disorder and Family History of Mental Illness
 
 data <- df_mentalhealth_vs_familyhistory %>%
@@ -82,3 +87,5 @@ ggplot(data = data, aes(x = family_history_of_mental_illness, y = percentage,
   theme(axis.text.x = element_text(angle = 30, 
                                    vjust = 1,
                                    hjust = 1 )) 
+
+
